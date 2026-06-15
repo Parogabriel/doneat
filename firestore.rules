@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- SDK Connection Test ---
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- User Rules ---
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      function isValidUser(data) {
+        return data.userId == request.auth.uid 
+          && data.email is string && data.email.size() <= 256
+          && data.role in ['DONOR', 'RECEIVER', 'ADMIN']
+          && data.xp is int && data.xp >= 0
+          && data.level is int && data.level >= 1
+          && data.keys().hasAll(['userId', 'email', 'role', 'xp', 'level'])
+          && data.keys().size() <= 10;
+      }
+
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        // Prevent role and XP escalation by comparing existing
+        incoming().role == existing().role &&
+        incoming().xp == existing().xp &&
+        incoming().level == existing().level &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'businessName', 'location', 'badges'])
+      );
+    }
+
+    // --- Donation Rules ---
+    match /donations/{donationId} {
+      allow read: if isSignedIn();
+      
+      function isValidDonation(data) {
+        return data.donorId == request.auth.uid
+          && data.category in ['Meals', 'Breads', 'Fruits', 'Vegetables', 'Others']
+          && data.quantity is number && data.quantity > 0
+          && data.unit in ['kg', 'units', 'portions']
+          && data.status in ['AVAILABLE', 'RESERVED', 'COMPLETED', 'CANCELLED']
+          && data.keys().hasAll(['donorId', 'category', 'quantity', 'unit', 'status']);
+      }
+
+      allow create: if isSignedIn() && isValidId(donationId) && isValidDonation(incoming()) && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'DONOR'
+      );
+
+      allow update: if isSignedIn() && (
+        // Action: Donor Updates (all fields except immutable ones)
+        (isOwner(existing().donorId) && isValidDonation(incoming()) && incoming().donorId == existing().donorId) ||
+        // Action: Receiver Reserves
+        (incoming().diff(existing()).affectedKeys().hasOnly(['status']) &&
+         existing().status == 'AVAILABLE' && incoming().status == 'RESERVED' &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'RECEIVER')
+      );
+      
+      allow delete: if isOwner(existing().donorId);
+    }
+
+    // --- Pickup Rules ---
+    match /pickups/{pickupId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.donorId) || isOwner(resource.data.receiverId));
+
+      function isValidPickup(data) {
+        return data.donationId is string && isValidId(data.donationId)
+          && data.donorId is string && isValidId(data.donorId)
+          && data.receiverId == request.auth.uid
+          && data.status in ['AWAITING', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'];
+      }
+
+      allow create: if isSignedIn() && isValidPickup(incoming()) && (
+        exists(/databases/$(database)/documents/donations/$(incoming().donationId)) &&
+        get(/databases/$(database)/documents/donations/$(incoming().donationId)).data.status == 'RESERVED'
+      );
+
+      allow update: if isSignedIn() && (
+        (isOwner(existing().donorId) || isOwner(existing().receiverId)) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'currentLocation', 'updatedAt'])
+      );
+    }
+  }
+}

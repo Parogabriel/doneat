@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information and gamification stats.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The Firebase Auth UID." },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["DONOR", "RECEIVER", "ADMIN"] },
+        "businessName": { "type": "string", "description": "Name of the establishment if donor." },
+        "xp": { "type": "integer", "description": "Experience points for gamification." },
+        "level": { "type": "integer" },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "role"]
+    },
+    "Donation": {
+      "title": "Donation",
+      "description": "A food donation listed by a donor.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "donorId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["Meals", "Breads", "Fruits", "Vegetables", "Others"] },
+        "quantity": { "type": "number" },
+        "unit": { "type": "string", "enum": ["kg", "units", "portions"] },
+        "expirationTime": { "type": "string", "format": "date-time" },
+        "pickupAvailability": { "type": "string" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "RESERVED", "COMPLETED", "CANCELLED"] },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "address": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["donorId", "category", "quantity", "unit", "status"]
+    },
+    "Pickup": {
+      "title": "Pickup",
+      "description": "Logistics tracking for a donation pickup.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "donationId": { "type": "string" },
+        "donorId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "status": { "type": "string", "enum": ["AWAITING", "IN_TRANSIT", "DELIVERED", "CANCELLED"] },
+        "currentLocation": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["donationId", "donorId", "receiverId", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles."
+    },
+    "/donations/{donationId}": {
+      "schema": "Donation",
+      "description": "Collection of surplus food donations."
+    },
+    "/pickups/{pickupId}": {
+      "schema": "Pickup",
+      "description": "Collection of pickup and logistics records."
+    }
+  }
+}

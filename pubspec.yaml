@@ -1,0 +1,35 @@
+﻿name: doneat
+description: "Aplicativo de doação e redirecionamento de alimentos excedentes."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Gerenciamento de Estado
+  provider: ^6.1.2
+
+  # Fontes Modernas
+  google_fonts: ^6.2.0
+
+  # Integração com GPS e Mapas
+  geolocator: ^11.0.0
+  google_maps_flutter: ^2.6.0
+
+  # Gráficos de Impacto Social
+  fl_chart: ^0.68.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Boas práticas de linting
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

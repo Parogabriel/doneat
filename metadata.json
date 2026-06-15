@@ -1,0 +1,6 @@
+{
+  "name": "DonEat",
+  "description": "A platform connecting commercial establishments with NGOs to donate surplus food, reduce waste, and fight food insecurity.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": []
+}
