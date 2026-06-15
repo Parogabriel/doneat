@@ -1,20 +1,27 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Doneat ♻️🍔
 
-# Run and deploy your AI Studio app
+Aplicativo responsivo híbrido para doação e redirecionamento de alimentos excedentes, conectando estabelecimentos comerciais (doadores) a ONGs e instituições parceiras (receptores).
 
-This contains everything you need to run your app locally.
+## 🌐 Acesse o aplicativo online:
+👉 **[https://Parogabriel.github.io/doneat/](https://Parogabriel.github.io/doneat/)**
 
-View your app in AI Studio: https://ai.studio/apps/eb5abcd9-e4f2-487f-987a-2722736bc986
+---
 
-## Run Locally
+## 🛠️ Tecnologias Utilizadas
+* **Framework**: Flutter / Dart
+* **Tipografia**: Google Fonts (Poppins)
+* **Gerência de Estado**: Provider
+* **Gráficos**: FL Chart (Histórico de Impacto Social com Tooltips Deslizantes)
+* **Arquitetura**: ResponsiveLayout Híbrido (Mobile Nativo + Web Glassmorphism)
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🚀 Como executar localmente
+1. Instale o Flutter SDK em sua máquina.
+2. Baixe ou clone este repositório.
+3. Baixe as dependências executando:
+   ```bash
+   flutter pub get
+   ```
+4. Inicie a aplicação:
+   ```bash
+   flutter run
+   ```
